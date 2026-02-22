@@ -11,7 +11,19 @@ import {
 } from 'lucide-react';
 import AlertDetailsModal from './AlertDetailsModal';
 
-import { alerts as initialAlerts, type Alert } from '../dataRepository';
+type AlertStatus = 'OPEN' | 'ESCALATED' | 'AUTO-CLOSED' | 'RESOLVED';
+type Severity = 'Critical' | 'Warning' | 'Info';
+
+interface Alert {
+    id: string;
+    asset: string;
+    sourceType: string;
+    severity: Severity;
+    status: AlertStatus;
+    timestamp: string;
+    driverName?: string;
+    vehicleId?: string;
+}
 
 const StatusBadge = ({ status }: { status: AlertStatus }) => {
     const styles = {
@@ -44,7 +56,14 @@ const SeverityIndicator = ({ severity }: { severity: Severity }) => {
 };
 
 const AlertFeed = () => {
-    const [alerts] = useState<Alert[]>(initialAlerts);
+    const [alerts] = useState<Alert[]>([
+        { id: '#A-001', asset: 'Vehicle', sourceType: 'Critical', severity: 'Critical', status: 'OPEN', timestamp: '2024-10-26 09:30', driverName: 'John Smith', vehicleId: 'V-101' },
+        { id: '#A-003', asset: 'Vehicle', sourceType: 'ESCALATED', severity: 'Critical', status: 'ESCALATED', timestamp: '2024-10-26 09:25', driverName: 'Maria Rodriguez', vehicleId: 'V-2015' },
+        { id: '#A-004', asset: 'Asset Tracker', sourceType: 'Critical', severity: 'Info', status: 'AUTO-CLOSED', timestamp: '2024-10-26 09:20', driverName: 'Ahmed Khan', vehicleId: 'V-305' },
+        { id: '#A-005', asset: 'Sensor', sourceType: 'Tire Pressure Low', severity: 'Warning', status: 'RESOLVED', timestamp: '2024-10-26 09:15', driverName: 'David Green', vehicleId: 'V-205' },
+        { id: '#A-006', asset: 'Vehicle', sourceType: 'Tire Pressure Low', severity: 'Critical', status: 'OPEN', timestamp: '2024-10-26 09:10', driverName: 'John Smith', vehicleId: 'V-101' },
+        { id: '#A-007', asset: 'Asset Tracker', sourceType: 'Critical', severity: 'Info', status: 'OPEN', timestamp: '2024-10-26 09:05', driverName: 'Maria Rodriguez', vehicleId: 'V-2015' },
+    ]);
 
     const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);

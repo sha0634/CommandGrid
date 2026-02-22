@@ -13,6 +13,20 @@ import Settings from './components/Settings';
 function App() {
   const [currentView, setCurrentView] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState('');
+
+  const navigateToHistory = (filter: string) => {
+    setHistoryFilter(filter);
+    setCurrentView('history');
+  };
+
+  const handleViewChange = (view: string) => {
+    setCurrentView(view);
+    setIsSidebarOpen(false); // Auto-close on mobile after selection
+    if (view !== 'history') {
+      setHistoryFilter(''); // Clear filter when leaving history
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-dashboard-bg overflow-x-hidden">
@@ -26,25 +40,29 @@ function App() {
 
       <Sidebar
         currentView={currentView}
-        onViewChange={(view) => {
-          setCurrentView(view);
-          setIsSidebarOpen(false); // Auto-close on mobile after selection
-        }}
+        onViewChange={handleViewChange}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0 transition-all duration-300">
-        <TopBar onMenuClick={() => setIsSidebarOpen(true)} onNavigate={setCurrentView} />
+        <TopBar
+          onMenuClick={() => setIsSidebarOpen(true)}
+          onNavigate={handleViewChange}
+          onNavigateToHistory={navigateToHistory}
+        />
         <main className="p-4 md:p-8 space-y-8 overflow-y-auto w-full">
           {currentView === 'overview' && (
             <>
               <CommandCenter />
-              <Leaderboard />
+              <Leaderboard
+                onNavigateToHistory={navigateToHistory}
+                onViewTrends={() => handleViewChange('analytics')}
+              />
               <AlertFeed />
             </>
           )}
-          {currentView === 'history' && <AlertHistory />}
+          {currentView === 'history' && <AlertHistory initialFilter={historyFilter} />}
           {currentView === 'analytics' && <Analytics />}
           {currentView === 'drivers' && <Drivers />}
           {currentView === 'escalation' && <EscalationRules />}

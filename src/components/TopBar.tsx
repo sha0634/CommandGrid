@@ -1,8 +1,33 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Bell, MessageSquare, ChevronDown, Menu, User, ShieldAlert, Cpu } from 'lucide-react';
-import { drivers, alerts, rules } from '../dataRepository';
 
-const TopBar = ({ onMenuClick, onNavigate }: { onMenuClick: () => void, onNavigate: (view: string) => void }) => {
+const mockSearchData = {
+    drivers: [
+        { id: 'D-001', name: 'Maria Rodriguez', vehicleId: 'V-2015', employeeId: 'EMP-1204' },
+        { id: 'D-002', name: 'John Smith', vehicleId: 'V-101', employeeId: 'EMP-1001' },
+        { id: 'D-003', name: 'Ahmed Khan', vehicleId: 'V-305', employeeId: 'EMP-1055' },
+        { id: 'D-004', name: 'Sarah Chen', vehicleId: 'V-108', employeeId: 'EMP-1255' }
+    ],
+    alerts: [
+        { id: '#A-001', info: 'Critical Speeding', driver: 'John Smith' },
+        { id: '#A-003', info: 'Harsh Braking', driver: 'Maria Rodriguez' },
+        { id: '#A-005', info: 'Tire Pressure Low', driver: 'David Green' }
+    ],
+    rules: [
+        { id: 'R-001', name: 'Overspeeding Escalation', type: 'Speed' },
+        { id: 'R-002', name: 'Engine Overheat Response', type: 'Temp' }
+    ]
+};
+
+const TopBar = ({
+    onMenuClick,
+    onNavigate,
+    onNavigateToHistory
+}: {
+    onMenuClick: () => void,
+    onNavigate: (view: string) => void,
+    onNavigateToHistory: (filter: string) => void
+}) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<{ category: string, items: any[] }[]>([]);
     const [showResults, setShowResults] = useState(false);
@@ -26,19 +51,17 @@ const TopBar = ({ onMenuClick, onNavigate }: { onMenuClick: () => void, onNaviga
             return;
         }
 
-        const filteredDrivers = drivers.filter(d =>
+        const filteredDrivers = mockSearchData.drivers.filter(d =>
             d.name.toLowerCase().includes(val.toLowerCase()) ||
-            d.employeeId.toLowerCase().includes(val.toLowerCase()) ||
             d.vehicleId.toLowerCase().includes(val.toLowerCase())
         ).slice(0, 3);
 
-        const filteredAlerts = alerts.filter(a =>
+        const filteredAlerts = mockSearchData.alerts.filter(a =>
             a.id.toLowerCase().includes(val.toLowerCase()) ||
-            a.driverName.toLowerCase().includes(val.toLowerCase()) ||
-            a.vehicleId.toLowerCase().includes(val.toLowerCase())
+            a.driver.toLowerCase().includes(val.toLowerCase())
         ).slice(0, 3);
 
-        const filteredRules = rules.filter(r =>
+        const filteredRules = mockSearchData.rules.filter(r =>
             r.name.toLowerCase().includes(val.toLowerCase())
         ).slice(0, 3);
 
@@ -51,13 +74,14 @@ const TopBar = ({ onMenuClick, onNavigate }: { onMenuClick: () => void, onNaviga
         setShowResults(true);
     };
 
-    const handleResultClick = (category: string) => {
-        const viewMap: Record<string, string> = {
-            'Drivers': 'drivers',
-            'Active Alerts': 'overview',
-            'Escalation Rules': 'escalation'
-        };
-        onNavigate(viewMap[category]);
+    const handleResultClick = (category: string, item: any) => {
+        if (category === 'Drivers') {
+            onNavigate('drivers');
+        } else if (category === 'Active Alerts') {
+            onNavigateToHistory(item.id);
+        } else if (category === 'Escalation Rules') {
+            onNavigate('escalation');
+        }
         setShowResults(false);
         setQuery('');
     };
@@ -78,7 +102,7 @@ const TopBar = ({ onMenuClick, onNavigate }: { onMenuClick: () => void, onNaviga
                         value={query}
                         onChange={(e) => handleSearch(e.target.value)}
                         onFocus={() => query.length >= 2 && setShowResults(true)}
-                        placeholder="Search drivers, alerts, or vehicles..."
+                        placeholder="Search drivers, alerts, or rules..."
                         className="w-full bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 rounded-lg py-2 pl-10 pr-4 text-sm transition-all outline-none border"
                     />
                 </div>
@@ -99,18 +123,18 @@ const TopBar = ({ onMenuClick, onNavigate }: { onMenuClick: () => void, onNaviga
                                         {res.items.map((item: any) => (
                                             <button
                                                 key={item.id}
-                                                onClick={() => handleResultClick(res.category)}
+                                                onClick={() => handleResultClick(res.category, item)}
                                                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-blue-50 group transition-colors text-left"
                                             >
                                                 <div>
                                                     <p className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                                                         {item.name || item.id}
                                                     </p>
-                                                    <p className="text-[10px] text-gray-400 font-medium">
-                                                        {item.employeeId || item.driverName || item.alertType} • {item.vehicleId || 'System'}
+                                                    <p className="text-[10px] text-gray-400 font-medium lowercase">
+                                                        {item.employeeId || item.info || item.type} • {item.vehicleId || item.driver || 'System'}
                                                     </p>
                                                 </div>
-                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                                     Jump to View
                                                 </div>
                                             </button>

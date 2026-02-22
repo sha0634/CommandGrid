@@ -96,17 +96,24 @@ const mockLogs: LogEntry[] = [
     }))
 ];
 
-const AlertHistory = () => {
+const AlertHistory = ({ initialFilter }: { initialFilter?: string }) => {
     const [selectedLogs, setSelectedLogs] = useState<string[]>([]);
     const [rowsPerPage, setRowsPerPage] = useState(25);
     const [selectedAlert, setSelectedAlert] = useState<any | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(initialFilter || '');
+
+    const filteredLogs = mockLogs.filter(log =>
+        log.alertId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.actor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const toggleSelectAll = () => {
-        if (selectedLogs.length === mockLogs.length) {
+        if (selectedLogs.length === filteredLogs.length) {
             setSelectedLogs([]);
         } else {
-            setSelectedLogs(mockLogs.map(log => log.id));
+            setSelectedLogs(filteredLogs.map(log => log.id));
         }
     };
 
@@ -162,6 +169,8 @@ const AlertHistory = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
                     <input
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search Alert IDs, Drivers, or Error Codes..."
                         className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 rounded-xl text-sm font-medium transition-all outline-none"
                     />
@@ -219,7 +228,7 @@ const AlertHistory = () => {
                                     <input
                                         type="checkbox"
                                         className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        checked={selectedLogs.length === mockLogs.length}
+                                        checked={filteredLogs.length > 0 && selectedLogs.length === filteredLogs.length}
                                         onChange={toggleSelectAll}
                                     />
                                 </th>
@@ -236,7 +245,7 @@ const AlertHistory = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {mockLogs.map((log) => (
+                            {filteredLogs.map((log) => (
                                 <tr
                                     key={log.id}
                                     className={cn(

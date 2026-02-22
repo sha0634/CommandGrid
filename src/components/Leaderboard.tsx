@@ -6,13 +6,15 @@ const DriverCard = ({
     vehicleId,
     alertCount,
     recentAlert,
-    image
+    image,
+    onViewAll
 }: {
     name: string,
     vehicleId: string,
     alertCount: number,
     recentAlert: string,
-    image?: string
+    image?: string,
+    onViewAll: () => void
 }) => {
     const [imgError, setImgError] = useState(!image);
 
@@ -59,7 +61,10 @@ const DriverCard = ({
                 </div>
             </div>
 
-            <button className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
+            <button
+                onClick={onViewAll}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
                 View All Alerts
                 <ExternalLink size={14} />
             </button>
@@ -67,30 +72,57 @@ const DriverCard = ({
     );
 };
 
-const Leaderboard = () => {
-    const drivers = [
+const Leaderboard = ({
+    onNavigateToHistory,
+    onViewTrends
+}: {
+    onNavigateToHistory: (filter: string) => void,
+    onViewTrends: () => void
+}) => {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [drivers, setDrivers] = useState([
         { name: "John Smith", vehicleId: "V-101 (ID: V-101)", alertCount: 5, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/x4_8_B9y.jpg" },
         { name: "Maria Rodriguez", vehicleId: "V-2015", alertCount: 12, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/v_8_B9y.jpg" },
         { name: "Ahmed Khan", vehicleId: "V-305", alertCount: 3, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/6f_8_B9y.jpg" },
         { name: "David Green", vehicleId: "V-205 28", alertCount: 8, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/g_8_B9y.jpg" },
         { name: "Samuel Oak", vehicleId: "V-509", alertCount: 2, recentAlert: "Speeding" },
-    ];
+    ]);
+
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        // We just toggle the animation briefly to provide visual feedback
+        // Data stays the same as per user request (no randomization/delay)
+        setTimeout(() => setIsRefreshing(false), 600);
+    };
 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <h2 className="text-xl font-bold text-gray-900">Top Offenders Leaderboard</h2>
-                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all">
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className={`p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all ${isRefreshing ? 'animate-spin text-blue-600 bg-blue-50' : ''}`}
+                    >
                         <RefreshCw size={14} />
                     </button>
                 </div>
-                <button className="text-sm font-bold text-blue-600 hover:underline">View All Trends</button>
+                <button
+                    onClick={onViewTrends}
+                    className="text-sm font-bold text-blue-600 hover:underline"
+                >
+                    View All Trends
+                </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {drivers.map((driver, idx) => (
-                    <DriverCard key={idx} {...driver} />
+                    <DriverCard
+                        key={idx}
+                        {...driver}
+                        onViewAll={() => onNavigateToHistory(driver.name)}
+                    />
                 ))}
             </div>
         </div>

@@ -33,7 +33,38 @@ interface Rule {
     enabled: boolean;
 }
 
-import { rules as initialRules } from '../dataRepository';
+const initialRules: Rule[] = [
+    {
+        id: 'R-001',
+        name: 'Overspeeding Multi-Event Escalation',
+        alertType: 'Vehicle Speed',
+        action: 'Notify Supervisor',
+        thresholdCount: 3,
+        timeWindow: 60,
+        timeUnit: 'Minutes',
+        enabled: true
+    },
+    {
+        id: 'R-002',
+        name: 'Critical Engine Overheat Response',
+        alertType: 'Engine Temp',
+        action: 'Mark as Critical',
+        thresholdCount: 1,
+        timeWindow: 5,
+        timeUnit: 'Minutes',
+        enabled: true
+    },
+    {
+        id: 'R-003',
+        name: 'Repeated Geofence Breach',
+        alertType: 'Geofence',
+        action: 'Block Vehicle',
+        thresholdCount: 2,
+        timeWindow: 2,
+        timeUnit: 'Hours',
+        enabled: false
+    }
+];
 
 const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => {
     useEffect(() => {
