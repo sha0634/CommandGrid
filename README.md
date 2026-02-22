@@ -54,4 +54,4 @@ CommandGrid is a high-performance, real-time fleet surveillance and alert manage
 The application follows a **Domain-Driven Component** structure. UI logic is isolated in `src/components`, while global utility tokens and standardizations (like the `cn` utility) ensure design consistency. Data flows are primarily top-down, ensuring predictable state and easy debugging.
 
 ---
-*Created for the MoveInSync Evaluation.*
+*Developed for the MoveInSync Evaluation.*
