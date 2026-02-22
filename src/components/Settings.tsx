@@ -158,7 +158,12 @@ const Settings = () => {
     );
 };
 
-const NavBtn = ({ active, onClick, icon: Icon, label }: any) => (
+const NavBtn = ({ active, onClick, icon: Icon, label }: {
+    active: boolean,
+    onClick: () => void,
+    icon: React.ElementType,
+    label: string
+}) => (
     <button
         onClick={onClick}
         className={cn(
@@ -180,7 +185,10 @@ const SectionHeader = ({ title, sub }: { title: string, sub: string }) => (
     </div>
 );
 
-const ProfileSection = ({ settings, onUpdate }: { settings: UserSettings, onUpdate: any }) => (
+const ProfileSection = ({ settings, onUpdate }: {
+    settings: UserSettings,
+    onUpdate: (updates: Partial<UserSettings>) => void
+}) => (
     <div className="space-y-6">
         <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
             <SectionHeader title="Profile Core" sub="Basic Account Information" />
@@ -233,7 +241,7 @@ const ProfileSection = ({ settings, onUpdate }: { settings: UserSettings, onUpda
                     ].map(t => (
                         <button
                             key={t.id}
-                            onClick={() => onUpdate({ theme: t.id as any })}
+                            onClick={() => onUpdate({ theme: t.id as 'light' | 'dark' | 'system' })}
                             className={cn(
                                 "flex-1 flex flex-col items-center gap-2 py-3 rounded-xl transition-all",
                                 settings.theme === t.id ? "bg-white text-blue-600 shadow-xl shadow-blue-50 font-black" : "text-gray-400 hover:text-gray-600"
@@ -321,7 +329,10 @@ const ProfileSection = ({ settings, onUpdate }: { settings: UserSettings, onUpda
     </div>
 );
 
-const NotificationsSection = ({ settings, onUpdate }: { settings: UserSettings, onUpdate: any }) => (
+const NotificationsSection = ({ settings, onUpdate }: {
+    settings: UserSettings,
+    onUpdate: (updates: Partial<UserSettings>) => void
+}) => (
     <div className="space-y-6">
         <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
             <div className="p-8 pb-0">
@@ -337,7 +348,7 @@ const NotificationsSection = ({ settings, onUpdate }: { settings: UserSettings, 
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                    {['critical', 'warning', 'info'].map((lvl: any) => (
+                    {(['critical', 'warning', 'info'] as const).map((lvl) => (
                         <tr key={lvl} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-8 py-6">
                                 <span className={cn(
@@ -349,7 +360,7 @@ const NotificationsSection = ({ settings, onUpdate }: { settings: UserSettings, 
                                     {lvl}
                                 </span>
                             </td>
-                            {['toast', 'email', 'push'].map((chan: any) => (
+                            {(['toast', 'email', 'push'] as const).map((chan) => (
                                 <td key={chan} className="px-8 py-6 text-center">
                                     <button
                                         onClick={() => onUpdate({
@@ -360,12 +371,12 @@ const NotificationsSection = ({ settings, onUpdate }: { settings: UserSettings, 
                                         })}
                                         className={cn(
                                             "w-10 h-5 rounded-full transition-all duration-300 relative mx-auto",
-                                            (settings.notifications[lvl as keyof typeof settings.notifications] as any)[chan] ? "bg-blue-600" : "bg-gray-200"
+                                            settings.notifications[lvl][chan] ? "bg-blue-600" : "bg-gray-200"
                                         )}
                                     >
                                         <div className={cn(
                                             "absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform duration-300",
-                                            (settings.notifications[lvl as keyof typeof settings.notifications] as any)[chan] ? "translate-x-5" : "translate-x-0"
+                                            settings.notifications[lvl][chan] ? "translate-x-5" : "translate-x-0"
                                         )} />
                                     </button>
                                 </td>
@@ -416,7 +427,10 @@ const NotificationsSection = ({ settings, onUpdate }: { settings: UserSettings, 
     </div>
 );
 
-const RegionalSection = ({ settings, onUpdate }: { settings: UserSettings, onUpdate: any }) => (
+const RegionalSection = ({ settings, onUpdate }: {
+    settings: UserSettings,
+    onUpdate: (updates: Partial<UserSettings>) => void
+}) => (
     <div className="space-y-6">
         <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-6">

@@ -1,17 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Search,
-    LayoutGrid,
-    List,
-    User,
-    Car,
-    AlertTriangle,
-    MessageSquare,
-    GraduationCap,
     ChevronDown,
-    ChevronUp,
+    ArrowUpDown,
     Download,
-    ExternalLink
+    ExternalLink,
+    XCircle,
+    User,
+    Truck,
+    Shield,
+    AlertTriangle
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -21,370 +19,246 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
-type DriverStatus = 'Active' | 'On-Duty' | 'Inactive' | 'Top Performer' | 'Open Alerts';
+type DriverStatus = 'Active' | 'On-Duty' | 'Inactive' | 'Top Performers' | 'Open Alerts';
 
 interface Driver {
     id: string;
     name: string;
-    avatar?: string;
-    employeeId: string;
     vehicleId: string;
-    totalAlerts: number;
-    riskLevel: RiskLevel;
-    activeAlerts: number;
-    recentAlertType: string;
-    safetyScore: number;
     status: 'Active' | 'On-Duty' | 'Inactive';
-    recentLogs: { type: string; timestamp: string; severity: 'Critical' | 'Warning' | 'Info' }[];
+    safetyScore: number;
+    activeAlerts: number;
+    totalDistance: string;
+    lastActive: string;
+    riskLevel: RiskLevel;
 }
 
-const mockDrivers: Driver[] = [
-    {
-        id: 'D-001',
-        name: 'Maria Rodriguez',
-        employeeId: 'EMP-1204',
-        vehicleId: 'V-101',
-        totalAlerts: 142,
-        riskLevel: 'High',
-        activeAlerts: 4,
-        recentAlertType: 'Overspeeding',
-        safetyScore: 68,
-        status: 'On-Duty',
-        recentLogs: [
-            { type: 'Overspeeding (78/55 mph)', timestamp: '10 mins ago', severity: 'Critical' },
-            { type: 'Harsh Braking', timestamp: '1 hour ago', severity: 'Warning' },
-            { type: 'Lane Departure', timestamp: '2 hours ago', severity: 'Info' }
-        ]
-    },
-    {
-        id: 'D-002',
-        name: 'James Wilson',
-        employeeId: 'EMP-1192',
-        vehicleId: 'V-204',
-        totalAlerts: 24,
-        riskLevel: 'Low',
-        activeAlerts: 0,
-        recentAlertType: 'None',
-        safetyScore: 96,
-        status: 'Active',
-        recentLogs: [
-            { type: 'System Audit', timestamp: '1 day ago', severity: 'Info' }
-        ]
-    },
-    {
-        id: 'D-003',
-        name: 'Sarah Chen',
-        employeeId: 'EMP-1255',
-        vehicleId: 'V-108',
-        totalAlerts: 89,
-        riskLevel: 'Medium',
-        activeAlerts: 2,
-        recentAlertType: 'Fatigue Warning',
-        safetyScore: 82,
-        status: 'On-Duty',
-        recentLogs: [
-            { type: 'Fatigue Warning', timestamp: '30 mins ago', severity: 'Warning' },
-            { type: 'Seatbelt Unbuckled', timestamp: '4 hours ago', severity: 'Warning' }
-        ]
-    },
-    {
-        id: 'D-004',
-        name: 'Robert Taylor',
-        employeeId: 'EMP-1088',
-        vehicleId: 'V-098',
-        totalAlerts: 112,
-        riskLevel: 'High',
-        activeAlerts: 5,
-        recentAlertType: 'Route Deviation',
-        safetyScore: 71,
-        status: 'Active',
-        recentLogs: [
-            { type: 'Route Deviation', timestamp: '1 hour ago', severity: 'Critical' },
-            { type: 'Geofence Breach', timestamp: '1 hour ago', severity: 'Critical' }
-        ]
-    },
-    {
-        id: 'D-005',
-        name: 'Samuel Oak',
-        employeeId: 'EMP-9001',
-        vehicleId: 'V-505',
-        totalAlerts: 15,
-        riskLevel: 'Low',
-        activeAlerts: 0,
-        recentAlertType: 'None',
-        safetyScore: 98,
-        status: 'Active',
-        recentLogs: []
-    }
-];
-
 const RiskBadge = ({ level }: { level: RiskLevel }) => {
-    const variants = {
-        Low: "bg-green-50 text-green-600 border-green-100",
-        Medium: "bg-amber-50 text-amber-600 border-amber-100",
-        High: "bg-red-50 text-red-600 border-red-100"
+    const colors = {
+        Low: 'bg-green-50 text-green-700 border-green-100',
+        Medium: 'bg-amber-50 text-amber-700 border-amber-100',
+        High: 'bg-red-50 text-red-700 border-red-100',
     };
     return (
-        <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-widest", variants[level])}>
+        <span className={cn("px-2 py-0.5 rounded text-[10px] font-black border uppercase tracking-widest", colors[level])}>
             {level} Risk
         </span>
     );
 };
 
-const DriverCard = ({ driver }: { driver: Driver }) => (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-all group border-b-4 border-b-transparent hover:border-b-blue-600">
-        <div className="flex justify-between items-start mb-4">
-            <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
-                    <User size={24} />
-                </div>
-                <div>
-                    <h3 className="font-black text-gray-900 tracking-tight">{driver.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">{driver.employeeId}</p>
-                </div>
-            </div>
-            <RiskBadge level={driver.riskLevel} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                    <Car size={10} /> Asset
-                </p>
-                <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-gray-900">{driver.vehicleId}</span>
-                    <ExternalLink size={10} className="text-blue-500" />
-                </div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-3 relative">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Score</p>
-                <span className={cn(
-                    "text-xs font-black",
-                    driver.safetyScore > 90 ? "text-green-600" : driver.safetyScore > 75 ? "text-amber-600" : "text-red-600"
-                )}>
-                    {driver.safetyScore}/100
-                </span>
-                {driver.activeAlerts > 0 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-white">
-                        {driver.activeAlerts}
-                    </div>
-                )}
-            </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-            <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">Total Alerts</span>
-                <span className="text-sm font-black text-gray-900">{driver.totalAlerts}</span>
-            </div>
-            <button className="px-4 py-2 bg-gray-50 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-black text-gray-600 transition-all active:scale-95">
-                View Profile
-            </button>
-        </div>
-    </div>
-);
-
-const DriverRow = ({ driver }: { driver: Driver }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    return (
-        <>
-            <tr className={cn(
-                "group cursor-pointer transition-colors",
-                expanded ? "bg-blue-50/30" : "hover:bg-gray-50/80"
-            )} onClick={() => setExpanded(!expanded)}>
-                <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                            <User size={16} />
-                        </div>
-                        <div>
-                            <p className="text-xs font-black text-gray-900">{driver.name}</p>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{driver.employeeId}</p>
-                        </div>
-                    </div>
-                </td>
-                <td className="px-6 py-4">
-                    <span className="text-xs font-black text-gray-700">{driver.vehicleId}</span>
-                </td>
-                <td className="px-6 py-4">
-                    <span className="text-xs font-bold text-gray-500">{driver.recentAlertType}</span>
-                </td>
-                <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 w-16 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                                className={cn(
-                                    "h-full transition-all duration-1000",
-                                    driver.safetyScore > 90 ? "bg-green-500" : driver.safetyScore > 75 ? "bg-amber-500" : "bg-red-500"
-                                )}
-                                style={{ width: `${driver.safetyScore}%` }}
-                            />
-                        </div>
-                        <span className="text-[11px] font-black text-gray-900">{driver.safetyScore}</span>
-                    </div>
-                </td>
-                <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center">
-                        <RiskBadge level={driver.riskLevel} />
-                    </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </div>
-                </td>
-            </tr>
-            {expanded && (
-                <tr className="bg-gray-50/50 border-t border-gray-100">
-                    <td colSpan={6} className="px-8 py-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-300">
-                            <div className="col-span-2 space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                    <AlertTriangle size={12} className="text-amber-500" />
-                                    Recent Incident Log
-                                </h4>
-                                <div className="space-y-2">
-                                    {driver.recentLogs.length > 0 ? driver.recentLogs.map((log, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className={cn(
-                                                    "w-2 h-2 rounded-full",
-                                                    log.severity === 'Critical' ? "bg-red-500 shadow-lg shadow-red-200" :
-                                                        log.severity === 'Warning' ? "bg-amber-500" : "bg-blue-500"
-                                                )} />
-                                                <span className="text-xs font-black text-gray-700">{log.type}</span>
-                                            </div>
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase">{log.timestamp}</span>
-                                        </div>
-                                    )) : (
-                                        <p className="text-xs text-gray-400 font-bold italic py-2">No recent incidents recorded.</p>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Priority Actions</h4>
-                                <div className="space-y-2">
-                                    <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95">
-                                        <MessageSquare size={14} />
-                                        Contact Driver
-                                    </button>
-                                    <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-gray-800 transition-all shadow-md active:scale-95">
-                                        <GraduationCap size={14} />
-                                        Assign Training
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            )}
-        </>
-    );
-};
-
 const Drivers = () => {
-    const [view, setView] = useState<'grid' | 'list'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<DriverStatus | 'All'>('All');
+
+    const [drivers] = useState<Driver[]>([
+        { id: 'EMP-1201', name: 'John Smith', vehicleId: 'V-101', status: 'Active', safetyScore: 94, activeAlerts: 0, totalDistance: '12,402 km', lastActive: '2 mins ago', riskLevel: 'Low' },
+        { id: 'EMP-1205', name: 'Maria Rodriguez', vehicleId: 'V-2015', status: 'On-Duty', safetyScore: 82, activeAlerts: 3, totalDistance: '8,122 km', lastActive: 'Just now', riskLevel: 'Medium' },
+        { id: 'EMP-1208', name: 'Ahmed Khan', vehicleId: 'V-305', status: 'Active', safetyScore: 68, activeAlerts: 7, totalDistance: '15,002 km', lastActive: '15 mins ago', riskLevel: 'High' },
+        { id: 'EMP-1212', name: 'Sarah Chen', vehicleId: 'V-112', status: 'Active', safetyScore: 98, activeAlerts: 0, totalDistance: '4,102 km', lastActive: '1 hour ago', riskLevel: 'Low' },
+        { id: 'EMP-1215', name: 'David Green', vehicleId: 'V-205', status: 'Inactive', safetyScore: 75, activeAlerts: 1, totalDistance: '22,402 km', lastActive: '2 days ago', riskLevel: 'Medium' },
+    ]);
+
+    const filteredDrivers = useMemo(() => {
+        return drivers.filter(driver => {
+            const matchesSearch =
+                driver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                driver.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                driver.vehicleId.toLowerCase().includes(searchQuery.toLowerCase());
+
+            const matchesStatus =
+                statusFilter === 'All' ||
+                driver.status === statusFilter ||
+                (statusFilter === 'Open Alerts' && driver.activeAlerts > 0) ||
+                (statusFilter === 'Top Performers' && driver.safetyScore >= 90);
+
+            return matchesSearch && matchesStatus;
+        });
+    }, [drivers, searchQuery, statusFilter]);
+
+    const clearFilters = () => {
+        setSearchQuery('');
+        setStatusFilter('All');
+    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Header Content */}
+            {/* Page Header */}
             <div className="flex flex-wrap items-end justify-between gap-6">
                 <div>
-                    <h2 className="text-3xl font-black text-gray-900 tracking-tight">Drivers & Performance</h2>
-                    <p className="text-sm font-bold text-gray-400 mt-1 uppercase tracking-widest px-1 border-l-4 border-blue-600">
-                        Fleet Personal Management
+                    <h2 className="text-3xl font-black text-gray-900 tracking-tight">Fleet Command</h2>
+                    <p className="text-sm font-bold text-gray-400 mt-1 uppercase tracking-widest px-1 border-l-4 border-blue-500">
+                        Human performance & safety metrics
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
-                        <Download size={16} className="text-gray-400" />
-                        Compliance Report
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-black text-gray-600 hover:bg-gray-50 transition-all shadow-sm" aria-label="Export fleet data">
+                        <Download size={16} />
+                        Fleet Sync
                     </button>
-                    <div className="bg-gray-100 p-1 rounded-xl flex items-center shadow-inner">
-                        <button
-                            onClick={() => setView('grid')}
-                            className={cn("p-2 rounded-lg transition-all", view === 'grid' ? "bg-white text-blue-600 shadow-md scale-105" : "text-gray-400 hover:text-gray-600")}
-                        >
-                            <LayoutGrid size={20} />
-                        </button>
-                        <button
-                            onClick={() => setView('list')}
-                            className={cn("p-2 rounded-lg transition-all", view === 'list' ? "bg-white text-blue-600 shadow-md scale-105" : "text-gray-400 hover:text-gray-600")}
-                        >
-                            <List size={20} />
-                        </button>
-                    </div>
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all shadow-md active:scale-95" aria-label="Register new asset">
+                        <ExternalLink size={16} />
+                        Deploy Asset
+                    </button>
                 </div>
             </div>
 
-            {/* Filter Hub */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[300px] relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+            {/* View & Search Controls */}
+            <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-xl flex flex-wrap items-center gap-6">
+                <div className="flex flex-1 min-w-[300px] relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} aria-hidden="true" />
                     <input
                         type="text"
-                        placeholder="Search by Driver Name, ID, or Vehicle..."
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 rounded-xl text-sm font-medium transition-all outline-none"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search Name, ID, or Vehicle..."
+                        className="w-full pl-12 pr-10 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 rounded-2xl text-sm font-medium transition-all outline-none"
+                        aria-label="Search drivers"
                     />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+                            aria-label="Clear search"
+                        >
+                            <XCircle size={16} />
+                        </button>
+                    )}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                    {['All', 'Active', 'On-Duty', 'Open Alerts', 'Top Performers'].map((f) => (
+                <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-xl border border-gray-100">
+                    {['All', 'Active', 'On-Duty', 'Inactive', 'Top Performers', 'Open Alerts'].map((s) => (
                         <button
-                            key={f}
-                            onClick={() => setStatusFilter(f as any)}
+                            key={s}
+                            onClick={() => setStatusFilter(s as DriverStatus | 'All')}
                             className={cn(
-                                "px-4 py-2.5 rounded-xl text-xs font-black transition-all border",
-                                statusFilter === f
-                                    ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100"
-                                    : "bg-gray-50 text-gray-500 border-transparent hover:border-gray-200"
+                                "px-4 py-2 text-[10px] font-black rounded-lg transition-all whitespace-nowrap",
+                                statusFilter === s
+                                    ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-100"
+                                    : "text-gray-400 hover:text-gray-600"
                             )}
+                            aria-pressed={statusFilter === s}
                         >
-                            {f}
+                            {s.toUpperCase()}
                         </button>
                     ))}
                 </div>
 
-                <div className="h-8 w-px bg-gray-200 mx-2 hidden lg:block" />
-
-                <button className="flex items-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 rounded-xl text-sm font-bold text-gray-600 transition-all ml-auto">
-                    Sort: High Alerts
-                    <ChevronDown size={14} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setViewMode('grid')}
+                        className={cn("p-2.5 rounded-xl transition-all", viewMode === 'grid' ? "bg-gray-900 text-white shadow-lg" : "bg-gray-50 text-gray-400 hover:text-gray-600")}
+                        aria-label="Grid view"
+                    >
+                        <ChevronDown size={18} className={cn(viewMode === 'grid' && "rotate-180")} />
+                    </button>
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={cn("p-2.5 rounded-xl transition-all", viewMode === 'list' ? "bg-gray-900 text-white shadow-lg" : "bg-gray-50 text-gray-400 hover:text-gray-600")}
+                        aria-label="List view"
+                    >
+                        <ArrowUpDown size={18} className={cn(viewMode === 'list' && "rotate-180")} />
+                    </button>
+                </div>
             </div>
 
-            {/* Content Display */}
-            {view === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {mockDrivers.map(driver => (
-                        <DriverCard key={driver.id} driver={driver} />
-                    ))}
-                </div>
-            ) : (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100">
-                                <th className="px-6 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest">Driver</th>
-                                <th className="px-6 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest text-center">Vehicle</th>
-                                <th className="px-6 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest text-center">Recent Activity</th>
-                                <th className="px-6 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest text-center">Safety Score</th>
-                                <th className="px-6 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest text-center">Risk Status</th>
-                                <th className="px-6 py-5"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {mockDrivers.map(driver => (
-                                <DriverRow key={driver.id} driver={driver} />
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-        </div>
+            {/* Drivers Grid/List */}
+            {
+                filteredDrivers.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center p-20 text-center bg-white rounded-3xl border border-dashed border-gray-200 animate-in fade-in duration-500">
+                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-6 font-black text-2xl animate-pulse">?</div>
+                        <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">Ghost Fleet</h3>
+                        <p className="text-gray-400 font-bold max-w-xs text-sm">No drivers found for this sector. Reset your sensors to see the full fleet.</p>
+                        <button
+                            onClick={clearFilters}
+                            className="mt-8 px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 uppercase tracking-widest"
+                        >
+                            Restore Radar
+                        </button>
+                    </div>
+                ) : (
+                    <div className={cn(
+                        viewMode === 'grid'
+                            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                            : "flex flex-col gap-4"
+                    )}>
+                        {filteredDrivers.map(driver => (
+                            <div
+                                key={driver.id}
+                                className={cn(
+                                    "bg-white border border-gray-100 hover:border-blue-200 transition-all overflow-hidden group shadow-sm hover:shadow-xl",
+                                    viewMode === 'grid' ? "rounded-3xl" : "rounded-2xl flex items-center p-4"
+                                )}
+                            >
+                                {/* Card Content ... */}
+                                <div className={cn(viewMode === 'grid' ? "p-6" : "flex-1 flex items-center gap-6")}>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-blue-600 font-black border border-gray-100">
+                                                {driver.name.charAt(0)}
+                                            </div>
+                                            <div className={cn(
+                                                "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white",
+                                                driver.status === 'Active' ? "bg-green-500" : driver.status === 'On-Duty' ? "bg-blue-500" : "bg-gray-300"
+                                            )} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{driver.name}</h3>
+                                            <p className="text-[11px] font-bold text-gray-400 tracking-widest">{driver.id}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className={cn("grid gap-4 mt-6", viewMode === 'grid' ? "grid-cols-2" : "grid-cols-4 flex-1")}>
+                                        <div className="p-3 bg-gray-50 rounded-2xl border border-transparent group-hover:bg-white group-hover:border-gray-100 transition-all">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Shield size={12} className="text-gray-400" />
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Safety</span>
+                                            </div>
+                                            <p className={cn("text-lg font-black", driver.safetyScore >= 90 ? "text-green-600" : "text-amber-600")}>{driver.safetyScore}%</p>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 rounded-2xl border border-transparent group-hover:bg-white group-hover:border-gray-100 transition-all">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <AlertTriangle size={12} className="text-gray-400" />
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Alerts</span>
+                                            </div>
+                                            <p className={cn("text-lg font-black", driver.activeAlerts > 0 ? "text-red-500" : "text-gray-400")}>{driver.activeAlerts}</p>
+                                        </div>
+                                        {!viewMode || viewMode === 'list' ? (
+                                            <>
+                                                <div className="p-3 bg-gray-50 rounded-2xl border border-transparent group-hover:bg-white group-hover:border-gray-100 transition-all">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Truck size={12} className="text-gray-400" />
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Vehicle</span>
+                                                    </div>
+                                                    <p className="text-sm font-black text-gray-700">{driver.vehicleId}</p>
+                                                </div>
+                                                <div className="p-3 bg-gray-50 rounded-2xl border border-transparent group-hover:bg-white group-hover:border-gray-100 transition-all">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <User size={12} className="text-gray-400" />
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Risk</span>
+                                                    </div>
+                                                    <RiskBadge level={driver.riskLevel} />
+                                                </div>
+                                            </>
+                                        ) : null}
+                                    </div>
+
+                                    {viewMode === 'grid' && (
+                                        <div className="mt-6 flex flex-wrap gap-2 pt-6 border-t border-gray-50">
+                                            <RiskBadge level={driver.riskLevel} />
+                                            <span className="text-[10px] font-black text-gray-400 px-3 py-1 bg-gray-50 rounded-md flex items-center gap-1 uppercase">
+                                                {driver.status}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
+        </div >
     );
 };
 

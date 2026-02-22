@@ -22,7 +22,7 @@ function cn(...inputs: ClassValue[]) {
 
 type SystemStatus = 'operational' | 'degraded' | 'outage';
 
-const mockLatencyData = Array.from({ length: 20 }, (_, _i) => ({
+const mockLatencyData = Array.from({ length: 20 }, () => ({
     value: 30 + Math.random() * 25
 }));
 

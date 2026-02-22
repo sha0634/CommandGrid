@@ -26,7 +26,7 @@ const SummaryCard = ({
 }: {
     title: string,
     value: string | number,
-    icon: any,
+    icon: React.ElementType,
     color: string,
     description: string,
     trend?: { val: string, positive: boolean },

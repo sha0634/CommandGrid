@@ -23,7 +23,7 @@ const SidebarItem = ({
     badge,
     onClick
 }: {
-    icon: any,
+    icon: React.ElementType,
     label: string,
     active?: boolean,
     badge?: string,

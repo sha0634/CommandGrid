@@ -210,6 +210,7 @@ const RuleFormModal = ({ rule, onClose, onSave }: { rule: Rule | null, onClose: 
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none transition-all font-bold text-gray-900"
                                     placeholder="e.g. Excessive Speeding Warning"
+                                    aria-label="Rule Name"
                                 />
                             </div>
 
@@ -251,6 +252,7 @@ const RuleFormModal = ({ rule, onClose, onSave }: { rule: Rule | null, onClose: 
                                         value={formData.thresholdCount}
                                         onChange={e => setFormData({ ...formData, thresholdCount: parseInt(e.target.value) })}
                                         className="w-full px-5 py-3 bg-white border border-blue-100 rounded-xl focus:border-blue-500 outline-none transition-all font-black text-blue-600"
+                                        aria-label="Threshold event count"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -261,10 +263,11 @@ const RuleFormModal = ({ rule, onClose, onSave }: { rule: Rule | null, onClose: 
                                             value={formData.timeWindow}
                                             onChange={e => setFormData({ ...formData, timeWindow: parseInt(e.target.value) })}
                                             className="flex-1 px-5 py-3 bg-white border border-blue-100 rounded-xl focus:border-blue-500 outline-none transition-all font-black text-blue-600"
+                                            aria-label="Time window value"
                                         />
                                         <select
                                             value={formData.timeUnit}
-                                            onChange={e => setFormData({ ...formData, timeUnit: e.target.value as any })}
+                                            onChange={e => setFormData({ ...formData, timeUnit: e.target.value as 'Minutes' | 'Hours' })}
                                             className="w-32 px-4 py-3 bg-white border border-blue-100 rounded-xl font-bold text-blue-500 outline-none"
                                         >
                                             <option>Minutes</option>

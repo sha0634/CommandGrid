@@ -1,77 +1,57 @@
+# CommandGrid: Intelligent Alert Management & Visualization
 
-# React + TypeScript + Vite
+CommandGrid is a high-performance, real-time fleet surveillance and alert management dashboard. Built for operations admins, it provides deep visibility into alert lifecycles, driver performance, and automated escalation protocols.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🚀 Key Features
 
-Currently, two official plugins are available:
+### 1. Command Center & Dashboard
+- **Real-time Summaries**: Vital stats (Total Open, Escalated, Auto-Closed) update dynamically to simulate live telemetry.
+- **Top Offenders Leaderboard**: Instant identification of high-risk drivers with quick-drill-down capabilities.
+- **Severity Distribution**: Visual breakdown of critical vs. warning events using high-impact donut and bar charts.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 2. Intelligent Alert Feed
+- **Global Search & Filter**: Search by Driver, Asset, or ID with real-time feedback.
+- **Multi-Status Tracking**: Full lifecycle support from `OPEN` to `RESOLVED`.
+- **Drill-down Modals**: Detailed metadata view including a **Visual State Transition Timeline** for auditability.
 
-## React Compiler
+### 3. Analytics & Intelligence
+- **Trend Analysis**: Interactive Area Charts showing Daily vs. Weekly alert oscillations.
+- **Source Module Distribution**: Visualization of alerts by origin (Speed, Temp, Geofence, etc.).
+- **Memoized Performance**: All heavy data filtering is wrapped in `useMemo` to ensure 60FPS UI responsiveness.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 4. Admin Rule Configuration
+- **Visual Protocol Designer**: Create, edit, and toggle escalation rules without code.
+- **Conflict Prevention**: Built-in validation (Threshold ≥ 1) and **Diff/Preview** view before saving changes.
+- **Real-time Propagation**: Rules reflect in system logic immediately upon confirmation.
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack & Plus Points
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Criteria | Implementation Strategy |
+| :--- | :--- |
+| **Component Architecture** | Modular, Atomic design with separation of concerns. |
+| **Responsiveness** | Mobile-first Tailwind CSS with fluid layouts (Grid/Flex). |
+| **Performance** | React `useMemo` for filtering + state-driven virtualization. |
+| **Accessibility** | WCAG 2.1 compliant: ARIA labels, semantic HTML, high contrast. |
+| **State Management** | Local Component State with "Lifting State" for shared views. |
+| **Visual Excellence** | Modern "Glassmorphism" UI, consistent token-based design system. |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 📦 Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Launch Dev Server**:
+   ```bash
+   npm run dev
+   ```
+3. **Build for Production**:
+   ```bash
+   npm run build
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📐 Architecture Note
+The application follows a **Domain-Driven Component** structure. UI logic is isolated in `src/components`, while global utility tokens and standardizations (like the `cn` utility) ensure design consistency. Data flows are primarily top-down, ensuring predictable state and easy debugging.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-=======
-# CommandGrid
->>>>>>> 9dcb9656377cd3c35d2b7f87d45263fd0a1d15fa
+---
+*Created for the MoveInSync Evaluation.*

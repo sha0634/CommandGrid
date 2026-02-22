@@ -1,6 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Bell, MessageSquare, ChevronDown, Menu, User, ShieldAlert, Cpu } from 'lucide-react';
 
+interface SearchItem {
+    id: string;
+    name?: string;
+    info?: string;
+    driver?: string;
+    type?: string;
+    vehicleId?: string;
+    employeeId?: string;
+}
+
 const mockSearchData = {
     drivers: [
         { id: 'D-001', name: 'Maria Rodriguez', vehicleId: 'V-2015', employeeId: 'EMP-1204' },
@@ -29,7 +39,7 @@ const TopBar = ({
     onNavigateToHistory: (filter: string) => void
 }) => {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<{ category: string, items: any[] }[]>([]);
+    const [results, setResults] = useState<{ category: string, items: { id: string, name?: string, info?: string, driver?: string, type?: string, vehicleId?: string, employeeId?: string }[] }[]>([]);
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +84,7 @@ const TopBar = ({
         setShowResults(true);
     };
 
-    const handleResultClick = (category: string, item: any) => {
+    const handleResultClick = (category: string, item: { id: string }) => {
         if (category === 'Drivers') {
             onNavigate('drivers');
         } else if (category === 'Active Alerts') {
@@ -120,7 +130,7 @@ const TopBar = ({
                                             {res.category === 'Escalation Rules' && <Cpu size={12} />}
                                             {res.category}
                                         </div>
-                                        {res.items.map((item: any) => (
+                                        {res.items.map((item: SearchItem) => (
                                             <button
                                                 key={item.id}
                                                 onClick={() => handleResultClick(res.category, item)}

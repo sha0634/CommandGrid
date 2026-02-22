@@ -80,7 +80,7 @@ const Leaderboard = ({
     onViewTrends: () => void
 }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [drivers, setDrivers] = useState([
+    const [drivers] = useState([
         { name: "John Smith", vehicleId: "V-101 (ID: V-101)", alertCount: 5, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/x4_8_B9y.jpg" },
         { name: "Maria Rodriguez", vehicleId: "V-2015", alertCount: 12, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/v_8_B9y.jpg" },
         { name: "Ahmed Khan", vehicleId: "V-305", alertCount: 3, recentAlert: "Speeding", image: "https://api.uifaces.co/our-content/donated/6f_8_B9y.jpg" },
