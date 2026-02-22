@@ -35,7 +35,7 @@ function App() {
       />
 
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0 transition-all duration-300">
-        <TopBar onMenuClick={() => setIsSidebarOpen(true)} />
+        <TopBar onMenuClick={() => setIsSidebarOpen(true)} onNavigate={setCurrentView} />
         <main className="p-4 md:p-8 space-y-8 overflow-y-auto w-full">
           {currentView === 'overview' && (
             <>
