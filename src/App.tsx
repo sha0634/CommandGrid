@@ -9,6 +9,7 @@ import Analytics from './components/Analytics';
 import Drivers from './components/Drivers';
 import EscalationRules from './components/EscalationRules';
 import Settings from './components/Settings';
+import SystemHealth from './components/SystemHealth';
 
 function App() {
   const [currentView, setCurrentView] = useState('overview');
@@ -65,6 +66,7 @@ function App() {
           {currentView === 'history' && <AlertHistory initialFilter={historyFilter} />}
           {currentView === 'analytics' && <Analytics />}
           {currentView === 'drivers' && <Drivers />}
+          {currentView === 'health' && <SystemHealth isFullPage={true} />}
           {currentView === 'escalation' && <EscalationRules />}
           {currentView === 'settings' && <Settings />}
         </main>

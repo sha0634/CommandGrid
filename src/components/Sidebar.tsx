@@ -110,7 +110,12 @@ const Sidebar = ({
                     active={currentView === 'drivers'}
                     onClick={() => onViewChange('drivers')}
                 />
-                <SidebarItem icon={Activity} label="System Health" />
+                <SidebarItem
+                    icon={Activity}
+                    label="System Health"
+                    active={currentView === 'health'}
+                    onClick={() => onViewChange('health')}
+                />
 
                 <div className="px-4 py-2 mt-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
                     Admin
@@ -130,7 +135,7 @@ const Sidebar = ({
             </nav>
 
             <div className="mt-auto">
-                <SystemHealth />
+                <SystemHealth isFullPage={false} />
                 <div className="p-4 border-t border-gray-100">
                     <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
