@@ -76,9 +76,9 @@ const ChartCard = ({
                 <Download size={16} />
             </button>
         </div>
-        <div className="flex-1 min-h-[300px] flex items-center justify-center">
+        <div className="flex-1 min-h-[300px]">
             {loading ? (
-                <div className="flex flex-col items-center gap-3">
+                <div className="h-full flex flex-col items-center justify-center gap-3">
                     <RefreshCcw size={32} className="text-blue-600 animate-spin" />
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">Syncing Reality...</p>
                 </div>
@@ -93,18 +93,61 @@ const Analytics = () => {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
+    // Move statistics to state for real-time updates
+    const [dailyData, setDailyData] = useState(trendDataDaily);
+    const [weeklyData, setWeeklyData] = useState(trendDataWeekly);
+
+    // Randomization Engine
+    const randomizeData = () => {
+        setDailyData(prev => prev.map(item => ({
+            ...item,
+            Total: Math.floor(100 + Math.random() * 150),
+            Escalated: Math.floor(10 + Math.random() * 50),
+            Resolved: Math.floor(20 + Math.random() * 80),
+            AutoClosed: Math.floor(15 + Math.random() * 60)
+        })));
+
+        setWeeklyData(prev => prev.map(item => ({
+            ...item,
+            Total: Math.floor(800 + Math.random() * 500),
+            Escalated: Math.floor(150 + Math.random() * 300),
+            Resolved: Math.floor(200 + Math.random() * 400),
+            AutoClosed: Math.floor(180 + Math.random() * 350)
+        })));
+    };
+
     const handleRefresh = () => {
         setRefreshing(true);
         setLoading(true);
         setTimeout(() => {
+            randomizeData(); // Update with new random values
             setLoading(false);
             setRefreshing(false);
         }, 1200);
     };
 
+    // Simulated real-time trickle
     useEffect(() => {
-        setLoading(true);
-        const timer = setTimeout(() => setLoading(false), 800);
+        const interval = setInterval(() => {
+            if (!loading && !refreshing) {
+                // Periodically update the last couple of data points to simulate "arriving" data
+                setDailyData(prev => {
+                    const newData = [...prev];
+                    const lastIdx = newData.length - 1;
+                    newData[lastIdx] = {
+                        ...newData[lastIdx],
+                        Total: newData[lastIdx].Total + (Math.random() > 0.5 ? 2 : -1)
+                    };
+                    return newData;
+                });
+            }
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [loading, refreshing]);
+
+    useEffect(() => {
+        // Reduced delay for better UX
+        const timer = setTimeout(() => setLoading(false), 100);
         return () => clearTimeout(timer);
     }, [dateRange, viewType]);
 
@@ -161,9 +204,9 @@ const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="w-full h-full min-h-[400px]">
+                <div className="w-full h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={viewType === 'Daily' ? trendDataDaily : trendDataWeekly} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                        <AreaChart data={viewType === 'Daily' ? dailyData : weeklyData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1} />
@@ -213,7 +256,7 @@ const Analytics = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Column 1: Severity Pie */}
                 <ChartCard title="Alerts by Severity" loading={loading}>
-                    <div className="w-full h-full relative">
+                    <div className="w-full h-[300px] relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -248,7 +291,7 @@ const Analytics = () => {
 
                 {/* Column 2: Source Bar */}
                 <ChartCard title="Alerts by Source Module" loading={loading}>
-                    <div className="w-full h-full">
+                    <div className="w-full h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 layout="vertical"

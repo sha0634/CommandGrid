@@ -21,14 +21,16 @@ const SummaryCard = ({
     icon: Icon,
     color,
     description,
-    trend
+    trend,
+    sparkData = mockSparklineData
 }: {
     title: string,
     value: string | number,
     icon: any,
     color: string,
     description: string,
-    trend?: { val: string, positive: boolean }
+    trend?: { val: string, positive: boolean },
+    sparkData?: { value: number }[]
 }) => (
     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between mb-2">
@@ -50,7 +52,7 @@ const SummaryCard = ({
             </div>
             <div className="h-10 w-24">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={mockSparklineData}>
+                    <AreaChart data={sparkData}>
                         <Area
                             type="monotone"
                             dataKey="value"
@@ -73,15 +75,38 @@ const CommandCenter = () => {
         pending: 456
     });
 
+    const [sparklines, setSparklines] = useState({
+        total: [...mockSparklineData],
+        escalated: [...mockSparklineData],
+        auto: [...mockSparklineData],
+        pending: [...mockSparklineData]
+    });
+
     useEffect(() => {
         const interval = setInterval(() => {
+            // Randomize main stats
             setStats(prev => ({
                 ...prev,
                 totalOpen: prev.totalOpen + Math.floor(Math.random() * 3) - 1,
                 escalated: prev.escalated + (Math.random() > 0.8 ? 1 : 0),
                 autoClosed: prev.autoClosed + Math.floor(Math.random() * 2),
             }));
-        }, 5000);
+
+            // Randomize sparklines (shift and add new point)
+            setSparklines(prev => {
+                const update = (data: typeof mockSparklineData) => {
+                    const newData = [...data.slice(1)];
+                    newData.push({ value: Math.floor(30 + Math.random() * 60) });
+                    return newData;
+                };
+                return {
+                    total: update(prev.total),
+                    escalated: update(prev.escalated),
+                    auto: update(prev.auto),
+                    pending: update(prev.pending)
+                };
+            });
+        }, 3000);
         return () => clearInterval(interval);
     }, []);
 
@@ -108,6 +133,7 @@ const CommandCenter = () => {
                     color="bg-blue-600"
                     description="Direct/CS Monitor"
                     trend={{ val: "12%", positive: true }}
+                    sparkData={sparklines.total}
                 />
                 <SummaryCard
                     title="Escalated"
@@ -116,6 +142,7 @@ const CommandCenter = () => {
                     color="bg-red-600"
                     description="Rules Driven"
                     trend={{ val: "5%", positive: false }}
+                    sparkData={sparklines.escalated}
                 />
                 <SummaryCard
                     title="Auto-Closed Today"
@@ -123,6 +150,7 @@ const CommandCenter = () => {
                     icon={CheckCircle2}
                     color="bg-gray-600"
                     description="Until 11:30 PM"
+                    sparkData={sparklines.auto}
                 />
                 <SummaryCard
                     title="Pending Resolution"
@@ -130,6 +158,7 @@ const CommandCenter = () => {
                     icon={Clock}
                     color="bg-amber-600"
                     description="Next 12 Hours"
+                    sparkData={sparklines.pending}
                 />
             </div>
 
