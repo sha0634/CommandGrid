@@ -5,7 +5,8 @@ import {
     Activity,
     Settings,
     History,
-    Users
+    Users,
+    X
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -49,18 +50,33 @@ const SidebarItem = ({
 
 const Sidebar = ({
     currentView,
-    onViewChange
+    onViewChange,
+    isOpen,
+    onClose
 }: {
     currentView: string,
-    onViewChange: (view: string) => void
+    onViewChange: (view: string) => void,
+    isOpen: boolean,
+    onClose: () => void
 }) => {
     return (
-        <div className="w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-0 flex flex-col">
-            <div className="p-6 flex items-center gap-2">
-                <div className="bg-blue-600 p-1.5 rounded-lg text-white">
-                    <ShieldAlert size={24} />
+        <div className={cn(
+            "w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-0 flex flex-col z-50 transition-transform duration-300 lg:translate-x-0 shadow-2xl lg:shadow-none",
+            isOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+            <div className="p-6 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                    <div className="bg-blue-600 p-1.5 rounded-lg text-white">
+                        <ShieldAlert size={24} />
+                    </div>
+                    <h1 className="text-xl font-bold tracking-tight">Alert Dashboard</h1>
                 </div>
-                <h1 className="text-xl font-bold tracking-tight">Alert Dashboard</h1>
+                <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-gray-100 rounded-lg lg:hidden text-gray-400 trasition-colors"
+                >
+                    <X size={20} />
+                </button>
             </div>
 
             <nav className="flex-1 mt-4">
