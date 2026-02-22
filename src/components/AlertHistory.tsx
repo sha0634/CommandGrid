@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
     Search,
-    Calendar,
     Filter,
     Download,
     FileText,
@@ -11,7 +10,9 @@ import {
     ChevronLeft,
     ChevronRight,
     ArrowUpDown,
-    ExternalLink
+    ExternalLink,
+    XCircle,
+    RefreshCcw
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -102,12 +103,29 @@ const AlertHistory = ({ initialFilter }: { initialFilter?: string }) => {
     const [selectedAlert, setSelectedAlert] = useState<any | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState(initialFilter || '');
+    const [filterStatus, setFilterStatus] = useState<AlertStatus | 'ALL'>('ALL');
+    const [filterSeverity, setFilterSeverity] = useState<Severity | 'ALL'>('ALL');
+    const [activeDropdown, setActiveDropdown] = useState<'severity' | 'status' | null>(null);
 
-    const filteredLogs = mockLogs.filter(log =>
-        log.alertId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.actor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        log.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const clearFilters = () => {
+        setSearchQuery('');
+        setFilterStatus('ALL');
+        setFilterSeverity('ALL');
+        setSelectedLogs([]);
+    };
+
+    const filteredLogs = mockLogs.filter(log => {
+        const matchesSearch =
+            log.alertId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            log.actor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            log.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            log.actionTaken.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesStatus = filterStatus === 'ALL' || log.status === filterStatus;
+        const matchesSeverity = filterSeverity === 'ALL' || log.severity === filterSeverity;
+
+        return matchesSearch && matchesStatus && matchesSeverity;
+    });
 
     const toggleSelectAll = () => {
         if (selectedLogs.length === filteredLogs.length) {
@@ -148,7 +166,7 @@ const AlertHistory = ({ initialFilter }: { initialFilter?: string }) => {
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 tracking-tight">Alert History & Logs</h2>
                     <p className="text-sm font-bold text-gray-400 mt-1 uppercase tracking-widest px-1 border-l-4 border-blue-600">
-                        Total Audit Logs: <span className="text-blue-600">12,482</span>
+                        Audit Logs Found: <span className="text-blue-600">{filteredLogs.length.toLocaleString()}</span>
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -165,35 +183,117 @@ const AlertHistory = ({ initialFilter }: { initialFilter?: string }) => {
 
             {/* Advanced Filters Bar */}
             <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[300px] relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search Alert IDs, Drivers, or Error Codes..."
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 rounded-xl text-sm font-medium transition-all outline-none"
-                    />
+                <div className="flex-1 min-w-[300px] relative group flex items-center gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search Alert IDs, Drivers, or Error Codes..."
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 rounded-xl text-sm font-medium transition-all outline-none border"
+                        />
+                    </div>
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
+                        >
+                            <XCircle size={18} />
+                        </button>
+                    )}
                 </div>
 
-                <button className="flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 rounded-xl text-sm font-bold text-gray-600 transition-all">
-                    <Calendar size={18} className="text-gray-400" />
-                    Last 30 Days
-                    <ChevronDown size={14} />
-                </button>
+                <div className="flex items-center gap-3">
+                    {/* Severity Filter */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setActiveDropdown(activeDropdown === 'severity' ? null : 'severity')}
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border",
+                                filterSeverity !== 'ALL' || activeDropdown === 'severity'
+                                    ? "bg-blue-50 border-blue-200 text-blue-600"
+                                    : "bg-gray-50 border-transparent text-gray-600 hover:bg-white hover:border-gray-200"
+                            )}
+                        >
+                            <Filter size={18} className={filterSeverity !== 'ALL' ? "text-blue-600" : "text-gray-400"} />
+                            Severity
+                            {filterSeverity !== 'ALL' && (
+                                <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">1</span>
+                            )}
+                            <ChevronDown size={14} className={cn("transition-transform duration-200", activeDropdown === 'severity' && "rotate-180")} />
+                        </button>
 
-                <div className="h-8 w-px bg-gray-200 mx-2" />
+                        {activeDropdown === 'severity' && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                {['ALL', 'Critical', 'Warning', 'Info'].map((s) => (
+                                    <button
+                                        key={s}
+                                        onClick={() => {
+                                            setFilterSeverity(s as any);
+                                            setActiveDropdown(null);
+                                        }}
+                                        className={cn(
+                                            "w-full text-left px-4 py-2 rounded-lg text-xs font-bold transition-colors",
+                                            filterSeverity === s ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
+                                        )}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
-                <button className="flex items-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 rounded-xl text-sm font-bold text-gray-600 transition-all">
-                    <Filter size={18} className="text-gray-400" />
-                    Severity
-                    <span className="bg-blue-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">3</span>
-                </button>
+                    {/* Status Filter */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border",
+                                filterStatus !== 'ALL' || activeDropdown === 'status'
+                                    ? "bg-blue-50 border-blue-200 text-blue-600"
+                                    : "bg-gray-50 border-transparent text-gray-600 hover:bg-white hover:border-gray-200"
+                            )}
+                        >
+                            Status
+                            {filterStatus !== 'ALL' && (
+                                <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">1</span>
+                            )}
+                            <ChevronDown size={14} className={cn("transition-transform duration-200", activeDropdown === 'status' && "rotate-180")} />
+                        </button>
 
-                <button className="flex items-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 rounded-xl text-sm font-bold text-gray-600 transition-all">
-                    Status
-                    <ChevronDown size={14} />
-                </button>
+                        {activeDropdown === 'status' && (
+                            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                {['ALL', 'OPEN', 'ESCALATED', 'RESOLVED', 'AUTO-CLOSED'].map((s) => (
+                                    <button
+                                        key={s}
+                                        onClick={() => {
+                                            setFilterStatus(s as any);
+                                            setActiveDropdown(null);
+                                        }}
+                                        className={cn(
+                                            "w-full text-left px-4 py-2 rounded-lg text-xs font-bold transition-colors",
+                                            filterStatus === s ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
+                                        )}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {(filterStatus !== 'ALL' || filterSeverity !== 'ALL' || searchQuery !== '') && (
+                        <button
+                            onClick={clearFilters}
+                            className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            title="Clear all filters"
+                        >
+                            <RefreshCcw size={18} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Bulk Actions Bar (Visible when rows selected) */}
@@ -324,7 +424,7 @@ const AlertHistory = ({ initialFilter }: { initialFilter?: string }) => {
                             </div>
                         </div>
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                            <span className="text-gray-900">1-25</span> of <span className="text-gray-900">12,482</span>
+                            Showing <span className="text-gray-900">{filteredLogs.length}</span> of <span className="text-gray-900">{mockLogs.length}</span> results
                         </p>
                     </div>
 
